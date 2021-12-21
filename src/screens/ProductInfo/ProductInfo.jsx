@@ -1,4 +1,17 @@
-module.exports = [
+import axios from 'axios'
+import React, { useEffect, useState } from 'react'
+
+import { useParams, useNavigate } from 'react-router-dom'
+import Header from '../../components/Header/Header'
+
+import styles from './styles.module.scss'
+
+
+import { IoMdArrowRoundBack, IoMdArrowRoundForward } from 'react-icons/io';
+import { api } from '../../services/api'
+
+const baseURL = "https://bd-final-backend.herokuapp.com"
+const products = [
     {
         "id": 1,
         "title": "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops",
@@ -240,3 +253,84 @@ module.exports = [
         }
     }
 ]
+// const product = products[0]
+
+
+function ProductInfo() {
+    let navigate = useNavigate()
+    let { id } = useParams()
+    id = parseInt(id)
+
+    const [product, setProduct] = useState({})
+
+
+    useEffect(() => {
+        async function getProduct() {
+            let { data } = await api.get(`/products/${id}`)
+            console.log(data)
+            // converter obj em formato do back para front
+            data = {
+                    ...data,
+                    title: data.name,
+                    price: data.sales_avg,
+                    rating: {
+                        rate: 0,
+                        count: data.amount
+                    },
+                    category: data.categories.join(", "),
+                    image: ""
+                }
+            
+
+            setProduct(data)
+        }
+        getProduct()
+    }, [])
+
+    return (
+        <>
+            <Header />
+            <div className={styles.arrows}>
+                <IoMdArrowRoundBack size={50} onClick={e => navigate(`/products/${id-1}`)}/>
+                <IoMdArrowRoundForward size={50} onClick={e => navigate(`/products/${id+1}`)}/>
+            </div>
+            <main className={styles.product}>
+                <img className={styles.product_img} src={product.image} alt={product.title} />
+                <div className={styles.product_info}>
+                    <div className={styles.wrapper}>
+                        <h2>{product.title}</h2>
+                        <p>Id: {product.id}</p>
+                    </div>
+                    <p>Categoria:
+                        <span className="bold">
+                            {product.category}
+                        </span>
+                    </p>
+                    <p>Quantidade:
+                        <span className="bold">
+                            {/* {product.rating.count} */}
+                        </span>
+                    </p>
+                    <p>Avaliação:
+                        <span className="bold">
+                            {/* {product.rating.rate} */}
+                        </span>
+                    </p>
+                    <p>Valor médio de venda:
+                        <span className="bold">
+                            R$ {product.price}
+                        </span>
+                    </p>
+                    <p>Descrição:
+                        <span>
+                            {product.description}
+                        </span>
+                    </p>
+                </div>
+            </main>
+        </>
+
+    )
+}
+
+export default ProductInfo
